@@ -64,7 +64,7 @@ const outPutResult = (dbObject) => {
     priority: dbObject.priority,
     category: dbObject.category,
     status: dbObject.status,
-    dueDate: dbObject.dueDate,
+    dueDate: dbObject.due_date,
   };
 };
 
@@ -73,7 +73,12 @@ const outPutResult = (dbObject) => {
 app.get("/todos/", async (request, response) => {
   let data = null;
   let getTodosQuery = "";
-  const { search_q = "", category, status, priority } = request.query;
+  const {
+    search_q = "",
+    category = "",
+    status = "",
+    priority = "",
+  } = request.query;
 
   switch (true) {
     case hsaPriorityAndStatusProperties(request.query):
@@ -266,7 +271,7 @@ app.post("/todos/", async (request, response) => {
         category === "HOME" ||
         category === "LEARNING"
       ) {
-        if (isMatch(date, "yyyy-MM-dd")) {
+        if (isMatch(dueDate, "yyyy-MM-dd")) {
           const postDate = format(new Date(dueDate), "yyyy-MM-dd");
           const Query = `
                         INSERT INTO todo (id , todo , category , priority , status , due_date)
@@ -305,19 +310,8 @@ app.put("/todos/:todoId/", async (request, response) => {
   const { todoId } = request.params;
   const updateColumn = "";
   const requestDetails = request.body;
-  const previousQuery = `
-        SELECT *
-        FROM todo
-        WHERE id = ${todoId};
-    `;
-  const previousTodo = await db.get(previousQuery);
-  const {
-    todo = previousTodo.todo,
-    priority = previousTodo.priority,
-    status = previousTodo.status,
-    category = previousTodo.category,
-    dueDate = previousTodo.dueDate,
-  } = request.body;
+  const { priority, todo, status, category, dueDate } = requestDetails;
+  console.log(priority, todo, status, category, dueDate);
 
   let updateTodoQuery;
 
@@ -394,8 +388,8 @@ app.put("/todos/:todoId/", async (request, response) => {
       response.send("Todo Updated");
       break;
     case requestDetails.dueDate !== undefined:
-      if (isMatch(date, "yyyy-MM-dd")) {
-        const newDate = format(new Date(date), "yyyy-MM-dd");
+      if (isMatch(dueDate, "yyyy-MM-dd")) {
+        const newDate = format(new Date(dueDate), "yyyy-MM-dd");
         updateTodoQuery = `
                     UPDATE todo 
                     SET todo = '${todo}',
